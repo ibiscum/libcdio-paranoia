@@ -1284,9 +1284,14 @@ int main(int argc, char *argv[]) {
 
     /* Apply read sector offset to the first and last sector indices.
        If the option has not been given to force overreading, do not offset
-       the last sector index beyond the last sector of the final track.
+       the first/last sector index beyond the disc boundaries.
     */
     i_first_lsn += toc_offset;
+    long toc_leadin = 0;
+    if (!force_overread && i_first_lsn < 0) {
+      toc_leadin = -i_first_lsn;
+      i_first_lsn = 0;
+    }
     lsn_t lasttrack_lastsector = cdda_track_lastsector(d, d->tracks);
     if (!force_overread && i_last_lsn + toc_offset >= lasttrack_lastsector)
       i_last_lsn = lasttrack_lastsector;
@@ -1475,6 +1480,9 @@ int main(int argc, char *argv[]) {
             toc_offset > 0 && !force_overread) {
           sectorlen += toc_offset;
         }
+        if (toc_leadin > 0 && batch_first == i_first_lsn) {
+          sectorlen += toc_leadin;
+        }
         switch (output_type) {
         case 0: /* raw */
           break;
@@ -1490,6 +1498,20 @@ int main(int argc, char *argv[]) {
         }
 
         /* Off we go! */
+
+        /* Write sectors of silent audio to compensate for
+           missing samples that would be in the leadin */
+        if (toc_leadin > 0 && batch_first == i_first_lsn) {
+          char *silence;
+          size_t missing_sector_bytes = CD_FRAMESIZE_RAW * toc_leadin;
+
+          silence = calloc(toc_leadin, CD_FRAMESIZE_RAW);
+          if (!silence || buffering_write(out, silence, missing_sector_bytes)) {
+            report("Error writing output: %s", strerror(errno));
+            exit(1);
+          }
+          free(silence);
+        }
 
         if (offset_buffer_used) {
           /* partial sector from previous batch read */
