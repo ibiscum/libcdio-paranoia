@@ -11,7 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define OUTBUFSZ 32 * 1024
+#define OUTBUFSZ (32 * 1024)
 
 #include "buffering_write.h"
 #include "utils.h"
@@ -54,15 +54,18 @@ long int buffering_write(int fd, char *buffer, long num) {
     bw_pos = 0;
   }
 
-  if (bw_pos + num > OUTBUFSZ) {
+  /* loop, in case num is large enough to fill (and flush) the buffer
+     more than once */
+  while (bw_pos + num > OUTBUFSZ) {
     /* fill our buffer first, then write, then modify buffer and num */
-    memcpy(&bw_outbuf[bw_pos], buffer, OUTBUFSZ - bw_pos);
+    long int fill = OUTBUFSZ - bw_pos;
+    memcpy(&bw_outbuf[bw_pos], buffer, fill);
     if (blocking_write(fd, bw_outbuf, OUTBUFSZ)) {
       perror("write (in buffering_write, full buffer)");
       return (-1);
     }
-    num -= (OUTBUFSZ - bw_pos);
-    buffer += (OUTBUFSZ - bw_pos);
+    num -= fill;
+    buffer += fill;
     bw_pos = 0;
   }
   /* save data */

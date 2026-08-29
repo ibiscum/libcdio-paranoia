@@ -37,6 +37,8 @@
 /testassert.core
 /testbincue
 /testbincue.c
+/testbuffering
+/testbuffering-*.dat
 /testdefault
 /testgetdevices
 /testgetdevices.c

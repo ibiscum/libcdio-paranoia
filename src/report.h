@@ -7,7 +7,7 @@ extern int quiet;
 extern FILE *reportfile;
 
 #define report(...)                                                            \
-  {                                                                            \
+  do {                                                                         \
     if (!quiet) {                                                              \
       fprintf(stderr, __VA_ARGS__);                                            \
       fputc('\n', stderr);                                                     \
@@ -16,25 +16,25 @@ extern FILE *reportfile;
       fprintf(reportfile, __VA_ARGS__);                                        \
       fputc('\n', reportfile);                                                 \
     }                                                                          \
-  }
+  } while (0)
 #define reportC(...)                                                           \
-  {                                                                            \
+  do {                                                                         \
     if (!quiet) {                                                              \
       fprintf(stderr, __VA_ARGS__);                                            \
     }                                                                          \
     if (reportfile) {                                                          \
       fprintf(reportfile, __VA_ARGS__);                                        \
     }                                                                          \
-  }
+  } while (0)
 #define printC(...)                                                            \
-  {                                                                            \
+  do {                                                                         \
     if (!quiet) {                                                              \
       fprintf(stderr, __VA_ARGS__);                                            \
     }                                                                          \
-  }
+  } while (0)
 #define logC(...)                                                              \
-  {                                                                            \
+  do {                                                                         \
     if (reportfile) {                                                          \
       fprintf(reportfile, __VA_ARGS__);                                        \
     }                                                                          \
-  }
+  } while (0)

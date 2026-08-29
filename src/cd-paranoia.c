@@ -19,9 +19,32 @@
   See ChangeLog for recent changes.
 */
 
+/* Needed for strdup() when config.h (and its _GNU_SOURCE) isn't pulled in,
+   e.g. when this file is parsed standalone by an editor/IDE. */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 # define __CDIO_CONFIG_H__ 1
+#else
+/* Standalone/editor parse: config.h wasn't consulted, so none of the
+   HAVE_*_H/VERSION macros below are defined. Assume a normal POSIX host so
+   the standard includes are still pulled in and their declarations
+   (isatty, errno, open, ...) are visible to tooling. */
+# define HAVE_STDIO_H 1
+# define HAVE_STDARG_H 1
+# define HAVE_LIMITS_H 1
+# define HAVE_STDLIB_H 1
+# define HAVE_UNISTD_H 1
+# define HAVE_STRING_H 1
+# define HAVE_FCNTL_H 1
+# define HAVE_ERRNO_H 1
+# define HAVE_SYS_STAT_H 1
+# ifndef VERSION
+#  define VERSION "unknown"
+# endif
 #endif
 
 #ifdef HAVE_STDIO_H
@@ -566,7 +589,7 @@ static void callback(long int inpos, paranoia_cb_mode_t function) {
 #endif /* !TRACE_PARANOIA */
 
 static const char optstring[] =
-    "aBcCd:eEfFg:k:hi:l:L:AMm:n:o:O:pqQrRsS:Tt:VvwWx:XYZz::";
+    "aBcCd:eEfFg:k:hl:L:AMm:n:o:O:pqQrRsS:Tt:VvwWx:XYZz::";
 
 static const struct option options[] = {
     {"abort-on-skip", no_argument, NULL, 'X'},
@@ -599,6 +622,7 @@ static const struct option options[] = {
     {"query", no_argument, NULL, 'Q'},
     {"quiet", no_argument, NULL, 'q'},
     {"sample-offset", required_argument, NULL, 'O'},
+    {"search-for-drive", no_argument, NULL, 's'},
     {"stderr-progress", no_argument, NULL, 'e'},
     {"test-mode", required_argument, NULL, 'x'},
     {"toc-bias", no_argument, NULL, 'T'},
@@ -797,6 +821,10 @@ int main(int argc, char *argv[]) {
     case 'r':
       output_type = 0;
       output_endian = 0;
+      break;
+    case 's':
+      /* Drive search is always performed automatically now; kept for
+         compatibility. */
       break;
     case 'q':
       verbose = CDDA_MESSAGE_FORGETIT;

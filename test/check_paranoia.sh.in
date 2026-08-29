@@ -166,6 +166,23 @@ if test "@CMP@" != no ; then
     exit 9
   fi
 
+  # -s/--search-for-drive is a documented compatibility no-op and should
+  # be accepted, not rejected as an unknown option
+  $cd_paranoia -d $cue_file -s -Q
+  if test $? -ne 0 ; then
+    exit 12
+  fi
+  $cd_paranoia -d $cue_file --search-for-drive -Q
+  if test $? -ne 0 ; then
+    exit 12
+  fi
+
+  # -i is not a supported option and should be rejected by getopt
+  $cd_paranoia -d $cue_file -i foo -Q 2>/dev/null
+  if test $? -eq 0 ; then
+    exit 13
+  fi
+
   exit 0
 else 
   if test "@CMP@" != no ; then

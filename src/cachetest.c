@@ -379,7 +379,7 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed) {
                long read of the earliest sector in the cache, then the
                cache must not have been dumped yet. */
 
-            if (ret == 1 && i && x < MIN_SEEK_MS) {
+            if (ret1 == 1 && i && x < MIN_SEEK_MS) {
               under = 1;
               logC("\n");
               break;
@@ -530,6 +530,7 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed) {
     int it = 3;
     int tests = 0;
     int under = 1;
+    int retry = 0;
     readahead = 0;
 
     while (gran > 1 || under) {
@@ -561,7 +562,7 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed) {
         while (sofar < cachesize) {
           ret = cdda_read_timed(d, NULL, offset + sofar, cachesize - sofar, &x);
           if (ret <= 0)
-            goto error;
+            goto error_readahead;
           logC("%d:%d:%d ", offset + sofar, ret, x);
 
           /* Some drives can lose sync and perform an internal resync,
@@ -598,6 +599,21 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed) {
           mspersector =
               retime_drive(d, progress, log, offset, readahead, mspersector);
         }
+
+      error_readahead:
+        if (ret <= 0) {
+          offset += cachesize + 100;
+          retry++;
+          if (retry > 10 || offset + cachesize > lastsector) {
+            reportC("\n\tToo many read errors while performing drive cache "
+                    "checks;"
+                    "\n\t  aborting test.\n\n");
+            return (-1);
+          }
+          reportC("\n\tRead error while performing drive cache checks;"
+                  "\n\t  choosing new offset and trying again.\n");
+          continue;
+        }
       }
 
       if (under)
@@ -619,10 +635,11 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed) {
   reportC("\tTesting cache tail cursor...");
 
   while (1) {
+    int retry = 0;
     rollbehind = cachesize;
 
     for (i = 0; i < 10 && rollbehind;) {
-      int sofar = 0, retry = 0;
+      int sofar = 0;
       logC("\n\t\t>>> ");
       printC(".");
       while (sofar < cachesize) {
@@ -703,9 +720,10 @@ int analyze_cache(cdrom_drive_t *d, FILE *progress, FILE *log, int speed) {
   reportC("\tTesting granularity of cache tail");
 
   while (1) {
+    int retry = 0;
     cachegran = cachesize + 1;
     for (i = 0; i < 10 && cachegran;) {
-      int sofar = 0, ret = 0, retry = 0;
+      int sofar = 0, ret = 0;
       logC("\n\t\t>>> ");
       printC(".");
       while (sofar < cachesize + 1) {

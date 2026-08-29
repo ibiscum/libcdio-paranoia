@@ -14,4 +14,4 @@ extern void WriteWav(int f, long int i_bytes);
 extern void WriteAifc(int f, long int i_bytes);
 
 /** Writes AIFF headers */
-extern void WriteAiff(int f, long int_bytes);
+extern void WriteAiff(int f, long int i_bytes);

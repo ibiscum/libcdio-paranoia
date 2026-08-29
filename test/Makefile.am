@@ -22,7 +22,13 @@ check_SCRIPTS = check_paranoia.sh endian.sh check_start_track_not_one.sh
 
 check_start_track_not_one.sh: get_libcdio_version
 
-check_PROGRAMS = testparanoia testutils get_libcdio_version
+check_PROGRAMS = testparanoia testutils testbuffering testheader testreport get_libcdio_version
+
+testbuffering_SOURCES = testbuffering.c ../src/buffering_write.c ../src/buffering_write.h
+
+testheader_SOURCES = testheader.c ../src/header.c ../src/header.h
+
+testreport_SOURCES = testreport.c ../src/report.c ../src/report.h
 
 check_DATA = cd-paranoia-log.right
 
@@ -30,7 +36,7 @@ EXTRA_DIST = $(check_SCRIPTS) $(check_DATA)
 
 TESTS = $(check_PROGRAMS) $(check_SCRIPTS)
 
-MOSTLYCLEANFILES = core core.* *.dump cdda-orig.wav cdda-try.wav *.raw *.bin *.cue get_libcdio_version
+MOSTLYCLEANFILES = core core.* *.dump cdda-orig.wav cdda-try.wav *.raw *.bin *.cue get_libcdio_version testbuffering-*.dat testheader.dat
 
 test: check-am
 
