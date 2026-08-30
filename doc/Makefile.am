@@ -14,7 +14,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 SUBDIRS = en ja
-EXTRA_DIST = overlapdef.txt
+EXTRA_DIST = overlapdef.txt ARCHITECTURE.md
 
 mostlyclean-generic:
 	-rm -f *~ \#* .*~ .\#*
